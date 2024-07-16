@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Normal Distribution</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+  <style>
+    body {
+        font-family: 'Fira Sans';
+      }
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      width: 100px;
+      height: 30px;
+      padding: 2px;
+      font: 12px 'Fira Sans';
+      background: lightsteelblue;
+      border: 1px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .area {
+      opacity: 0.6;
+    }
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2;
+    }
+    .dotted-line {
+      stroke: black;
+      stroke-width: 2;
+    }
+    .critical-line {
+      stroke: red;
+      stroke-width: 2;
+      stroke-dasharray: 4 2;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="alpha">Alpha: </label>
+    <input type="range" id="alpha" name="alpha" min="0.01" max="0.10" step="0.005" value="0.05">
+    <span id="alphaValue">0.05</span>
+    <br>
+    <label><input type="radio" name="tail" value="two" checked> Two-Tailed</label>
+    <label><input type="radio" name="tail" value="left"> One-Tailed (Left)</label>
+    <label><input type="radio" name="tail" value="right"> One-Tailed (Right)</label>
+  </div>
+  <svg width="800" height="400"></svg>
+  <script src="script.js"></script>
+</body>
+</html>

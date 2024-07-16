@@ -12,31 +12,119 @@
     .tooltip {
       position: absolute;
       text-align: center;
-      width: 100px;
-      height: 30px;
+      width: 120px;
+      height: 60px;
       padding: 2px;
-      font: 12px 'Fira Sans';
-      background: lightsteelblue;
+      font: 24px 'Fira Sans';
+      background: #507A55;
       border: 1px;
       border-radius: 8px;
       pointer-events: none;
     }
     .area {
       opacity: 0.6;
+      fill: #73DD9B; /* Emerald */
     }
     .line {
       fill: none;
-      stroke: steelblue;
+      stroke: #324B35; /* Cal Poly Green */
       stroke-width: 2;
     }
     .dotted-line {
-      stroke: black;
+      stroke: #04A17C; /* Jungle Green */
       stroke-width: 2;
     }
     .critical-line {
-      stroke: red;
+      stroke: #507A55; 
       stroke-width: 2;
       stroke-dasharray: 4 2;
+    }
+    input[type="radio"] {
+      accent-color: #324B35; /* Cal Poly Green */
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 300px; /* Set a fixed width */
+      margin: 10.8px 0;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 8px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: #8CE097; /* Light Green */
+      border-radius: 1.3px;
+      border: 0.2px solid #010101;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 15px;
+      width: 15px;
+      border-radius: 50%;
+      background: #04A17C; /* Jungle Green */
+      cursor: pointer;
+      margin-top: -4px; /* Adjust to fit the track height */
+    }
+    
+    input[type="range"]:focus::-webkit-slider-runnable-track {
+      background: #8CE097; /* Light Green */
+    }
+    
+    input[type="range"]::-moz-range-track {
+      width: 100%;
+      height: 8px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: #8CE097; /* Light Green */
+      border-radius: 1.3px;
+      border: 0.2px solid #010101;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      height: 15px;
+      width: 15px;
+      border-radius: 50%;
+      background: #04A17C; /* Jungle Green */
+      cursor: pointer;
+    }
+    
+    input[type="range"]::-ms-track {
+      width: 100%;
+      height: 8px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: transparent; 
+      border-color: transparent;
+      color: transparent;
+    }
+    
+    input[type="range"]::-ms-fill-lower {
+      background: #8CE097; /* Light Green */
+      border: 0.2px solid #010101;
+      border-radius: 2.6px;
+    }
+    
+    input[type="range"]::-ms-fill-upper {
+      background: #8CE097; /* Light Green */
+      border: 0.2px solid #010101;
+      border-radius: 2.6px;
+    }
+    
+    input[type="range"]::-ms-thumb {
+      height: 15px;
+      width: 15px;
+      border-radius: 50%;
+      background: #04A17C; /* Jungle Green */
+      cursor: pointer;
+    }
+    
+    input[type="range"]:focus::-ms-fill-lower {
+      background: #8CE097; /* Light Green */
+    }
+    
+    input[type="range"]:focus::-ms-fill-upper {
+      background: #8CE097; /* Light Green */
     }
   </style>
 </head>
@@ -99,28 +187,24 @@
     const updateDistribution = () => {
       const alpha = +d3.select("#alpha").property("value");
       const tail = d3.select('input[name="tail"]:checked').node().value;
-
+    
       const data = d3.range(-4, 4, 0.01).map(z => ({
         x: z,
         y: normalDistribution(z)
       }));
-
+    
       g.selectAll("*").remove();
-
+    
       g.append("path")
         .datum(data)
         .attr("class", "line")
         .attr("d", line);
-
+    
       g.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x));
-
-      g.append("g")
-        .attr("class", "axis axis--y")
-        .call(d3.axisLeft(y));
-
+    
       let zCritical, zCriticalLeft;
       if (tail === "two") {
         zCritical = jStat.normal.inv(1 - alpha / 2, 0, 1);
@@ -132,7 +216,7 @@
         zCritical = jStat.normal.inv(1 - alpha, 0, 1);
         zCriticalLeft = -4;
       }
-
+    
       if (tail === "two") {
         g.append("line")
           .attr("class", "critical-line")
@@ -146,19 +230,43 @@
           .attr("x2", x(zCritical))
           .attr("y1", 0)
           .attr("y2", height);
-
+    
         g.append("path")
           .datum(data.filter(d => d.x <= zCriticalLeft))
           .attr("class", "area")
           .attr("d", area)
-          .attr("fill", "red")
-          .attr("opacity", 0.5);
+          .attr("fill", "#8CE097")
+          .attr("opacity", 0.6);
         g.append("path")
           .datum(data.filter(d => d.x >= zCritical))
           .attr("class", "area")
           .attr("d", area)
-          .attr("fill", "red")
-          .attr("opacity", 0.5);
+          .attr("fill", "#8CE097")
+          .attr("opacity", 0.6);
+    
+        // Add text labels for two-tailed test
+        const leftText = g.append("text")
+          .attr("x", x(zCriticalLeft) - 10)  // Adjust x position
+          .attr("y", height / 2)  // Centered vertically
+          .attr("text-anchor", "end")
+          .attr("dominant-baseline", "middle")
+          .text("p");
+        leftText.append("tspan")
+          .attr("baseline-shift", "sub")
+          .style("font-size", "0.65em")  // Smaller font size
+          .text("CRIT");
+    
+        const rightText = g.append("text")
+          .attr("x", x(zCritical) + 10)  // Adjust x position
+          .attr("y", height / 2)  // Centered vertically
+          .attr("text-anchor", "start")
+          .attr("dominant-baseline", "middle")
+          .text("p");
+        rightText.append("tspan")
+          .attr("baseline-shift", "sub")
+          .style("font-size", "0.65em")  // Smaller font size
+          .text("CRIT");
+    
       } else if (tail === "left") {
         g.append("line")
           .attr("class", "critical-line")
@@ -166,13 +274,26 @@
           .attr("x2", x(zCriticalLeft))
           .attr("y1", 0)
           .attr("y2", height);
-
+    
         g.append("path")
           .datum(data.filter(d => d.x <= zCriticalLeft))
           .attr("class", "area")
           .attr("d", area)
-          .attr("fill", "red")
-          .attr("opacity", 0.5);
+          .attr("fill", "#8CE097")
+          .attr("opacity", 0.6);
+    
+        // Add text label for left-tailed test
+        const leftText = g.append("text")
+          .attr("x", x(zCriticalLeft) - 10)  // Adjust x position
+          .attr("y", height / 2)  // Centered vertically
+          .attr("text-anchor", "end")
+          .attr("dominant-baseline", "middle")
+          .text("p");
+        leftText.append("tspan")
+          .attr("baseline-shift", "sub")
+          .style("font-size", "0.65em")  // Smaller font size
+          .text("CRIT");
+    
       } else {
         g.append("line")
           .attr("class", "critical-line")
@@ -180,58 +301,71 @@
           .attr("x2", x(zCritical))
           .attr("y1", 0)
           .attr("y2", height);
-
+    
         g.append("path")
           .datum(data.filter(d => d.x >= zCritical))
           .attr("class", "area")
           .attr("d", area)
-          .attr("fill", "red")
-          .attr("opacity", 0.5);
+          .attr("fill", "#8CE097")
+          .attr("opacity", 0.6);
+    
+        // Add text label for right-tailed test
+        const rightText = g.append("text")
+          .attr("x", x(zCritical) + 10)  // Adjust x position
+          .attr("y", height / 2)  // Centered vertically
+          .attr("text-anchor", "start")
+          .attr("dominant-baseline", "middle")
+          .text("p");
+        rightText.append("tspan")
+          .attr("baseline-shift", "sub")
+          .style("font-size", "0.65em")  // Smaller font size
+          .text("CRIT");
       }
-
+    
       const verticalLine = g.append("line")
         .attr("class", "dotted-line")
         .attr("y1", 0)
         .attr("y2", height)
         .attr("display", "none");
-
+    
       svg.on("mousemove", function(event) {
         const [mouseX] = d3.pointer(event, this);
         const mouseZ = x.invert(mouseX - margin.left);
         let pValue;
-
+    
         if (tail === "two") {
-          pValue = 2 * (1 - cumulativeNormalDistribution(Math.abs(mouseZ)));
+          pValue = (1 - cumulativeNormalDistribution(Math.abs(mouseZ))) * 2;
         } else if (tail === "left") {
           pValue = cumulativeNormalDistribution(mouseZ);
         } else {
           pValue = 1 - cumulativeNormalDistribution(mouseZ);
         }
-
+    
         verticalLine.attr("x1", mouseX - margin.left)
           .attr("x2", mouseX - margin.left)
           .attr("display", "inline");
-
+    
         tooltip.transition().duration(200).style("opacity", 0.9);
-        tooltip.html(`Z: ${mouseZ.toFixed(2)}<br>P: ${pValue.toFixed(4)}`)
+        tooltip.html(`Z: ${mouseZ.toFixed(2)}<br>p: ${pValue.toFixed(4)}`)
           .style("left", `${event.pageX + 20}px`)
           .style("top", `${event.pageY - 28}px`);
       });
-
+    
       svg.on("mouseleave", () => {
         tooltip.transition().duration(500).style("opacity", 0);
         verticalLine.attr("display", "none");
       });
     };
-
+    
     updateDistribution();
-
+    
     d3.select("#alpha").on("input", function() {
       d3.select("#alphaValue").text(this.value);
       updateDistribution();
     });
-
+    
     d3.selectAll('input[name="tail"]').on("change", updateDistribution);
+    
   </script>
 </body>
 </html>
