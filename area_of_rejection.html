@@ -445,7 +445,7 @@ const updateDistribution = () => {
     let pValue;
 
     if (tail === "two") {
-      pValue = (1 - cumulativeNormalDistribution(Math.abs(mouseZ))) * 2;
+      pValue = (1 - cumulativeNormalDistribution(Math.abs(mouseZ)));
     } else if (tail === "left") {
       pValue = cumulativeNormalDistribution(mouseZ);
     } else {
@@ -457,7 +457,7 @@ const updateDistribution = () => {
       .attr("display", "inline");
 
     tooltip.transition().duration(200).style("opacity", 0.9);
-    tooltip.html(`Z: ${mouseZ.toFixed(2)}<br>P: ${pValue.toFixed(4)}`)
+    tooltip.html(`Z: ${mouseZ.toFixed(2)}<br>p: ${pValue.toFixed(4)}`)
       .style("left", `${event.pageX + 20}px`)
       .style("top", `${event.pageY - 28}px`);
   });
