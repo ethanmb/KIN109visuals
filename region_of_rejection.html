@@ -7,7 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
   <style>
     body {
-      font-family: 'Fira Sans';
+      font-family: 'Helvetica Neue', sans-serif;
     }
     .tooltip {
       position: absolute;
@@ -15,12 +15,12 @@
       width: 120px;
       height: 60px;
       padding: 2px;
-      font: 24px 'Fira Sans';
+      font: 22px 'Helvetica Neue', sans-serif;
       background: #507A55;
       border: 1px;
       border-radius: 8px;
       pointer-events: none;
-    }
+    }    
     .area {
       opacity: 0.6;
       fill: #73DD9B; /* Emerald */
@@ -267,7 +267,7 @@ const updateDistribution = () => {
       .attr("y", height / 2)  // Centered vertically
       .attr("text-anchor", "end")
       .attr("dominant-baseline", "middle")
-      .text("p");
+      .text("Z");
     leftText.append("tspan")
       .attr("baseline-shift", "sub")
       .style("font-size", "0.65em")  // Smaller font size
@@ -278,7 +278,7 @@ const updateDistribution = () => {
       .attr("y", height / 2)  // Centered vertically
       .attr("text-anchor", "start")
       .attr("dominant-baseline", "middle")
-      .text("p");
+      .text("Z");
     rightText.append("tspan")
       .attr("baseline-shift", "sub")
       .style("font-size", "0.65em")  // Smaller font size
@@ -457,7 +457,7 @@ const updateDistribution = () => {
       .attr("display", "inline");
 
     tooltip.transition().duration(200).style("opacity", 0.9);
-    tooltip.html(`Z: ${mouseZ.toFixed(2)}<br>p: ${pValue.toFixed(4)}`)
+    tooltip.html(`Zobs: ${mouseZ.toFixed(2)}<br>p: ${pValue.toFixed(4)}`)
       .style("left", `${event.pageX + 20}px`)
       .style("top", `${event.pageY - 28}px`);
   });
