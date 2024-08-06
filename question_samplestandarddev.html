@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mean Practice Question</title>
+    <title>Sample Standard Deviation Question</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -37,19 +37,21 @@
         let correctAnswer;
 
         function generateQuestion() {
-            // Generate five random numbers between 0 and 20
+            // Generate six random numbers between 0 and 20
             let numbers = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 6; i++) {
                 numbers.push(Math.floor(Math.random() * 21));
             }
 
-            // Calculate the mean
-            let sum = numbers.reduce((a, b) => a + b, 0);
-            correctAnswer = (sum / numbers.length).toFixed(2);
+            // Calculate the sample standard deviation
+            let mean = numbers.reduce((a, b) => a + b, 0) / numbers.length;
+            let squaredDifferences = numbers.map(num => Math.pow(num - mean, 2));
+            let variance = squaredDifferences.reduce((a, b) => a + b, 0) / (numbers.length - 1);
+            correctAnswer = Math.sqrt(variance).toFixed(2);
 
             // Display the question
             document.getElementById("question").innerText = 
-                "Calculate the mean of the following numbers (report your answer to 2 decimal places): " + numbers.join(", ");
+                "Calculate the sample standard deviation of the following numbers: " + numbers.join(", ");
             
             // Clear previous answer and result
             document.getElementById("studentAnswer").value = '';
@@ -71,8 +73,9 @@
     </script>
 </head>
 <body onload="generateQuestion()">
+    <h1>Statistics Practice Question</h1>
     <p id="question"></p>
-    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer">
+    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer (to 2 decimal places)">
     <button onclick="checkAnswer()">Submit Answer</button>
     <p id="result"></p>
     <button onclick="generateQuestion()">Generate New Question</button>

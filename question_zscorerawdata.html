@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculating a Z-Score from Raw Data</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        p, input, button {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    </style>
+    <script>
+        let rawData;
+        let correctMean;
+        let correctStdDev;
+        let selectedRawScore;
+        let correctZScore;
+
+        function generateQuestion() {
+            // Generate 5 random whole numbers between 0 and 15
+            rawData = Array.from({length: 5}, () => Math.floor(Math.random() * 16));
+            
+            // Calculate mean
+            correctMean = (rawData.reduce((a, b) => a + b, 0) / rawData.length).toFixed(2);
+            
+            // Calculate sample standard deviation
+            let variance = rawData.reduce((a, b) => a + Math.pow(b - correctMean, 2), 0) / (rawData.length - 1);
+            correctStdDev = Math.sqrt(variance).toFixed(2);
+            
+            // Select one raw score for z-score calculation
+            selectedRawScore = rawData[Math.floor(Math.random() * rawData.length)];
+            
+            // Calculate z-score
+            correctZScore = ((selectedRawScore - correctMean) / correctStdDev).toFixed(2);
+            
+            // Display the question
+            document.getElementById("question").innerText = 
+                `Raw Data: [${rawData.join(", ")}]\n` +
+                `1. Calculate the mean.\n` +
+                `2. Calculate the sample standard deviation.\n` +
+                `3. Calculate the z-score for the raw score ${selectedRawScore}.`;
+            
+            // Clear previous answers and results
+            document.getElementById("meanAnswer").value = '';
+            document.getElementById("stdDevAnswer").value = '';
+            document.getElementById("zScoreAnswer").value = '';
+            document.getElementById("result").innerText = '';
+        }
+
+        function checkAnswers() {
+            let meanAnswer = parseFloat(document.getElementById("meanAnswer").value).toFixed(2);
+            let stdDevAnswer = parseFloat(document.getElementById("stdDevAnswer").value).toFixed(2);
+            let zScoreAnswer = parseFloat(document.getElementById("zScoreAnswer").value).toFixed(2);
+            let result = document.getElementById("result");
+            
+            let score = 0;
+
+            if (meanAnswer === correctMean) {
+                score++;
+            }
+            
+            if (stdDevAnswer === correctStdDev) {
+                score++;
+            }
+            
+            if (zScoreAnswer === correctZScore) {
+                score++;
+            }
+
+            result.innerText = `You scored ${score}/3. Correct answers: Mean = ${correctMean}, Std Dev = ${correctStdDev}, Z-Score = ${correctZScore}.`;
+            result.style.color = score === 3 ? "green" : "red";
+        }
+    </script>
+</head>
+<body onload="generateQuestion()">
+    <h1>Statistics Practice Question</h1>
+    <p id="question"></p>
+    <label for="meanAnswer">Mean:</label>
+    <input type="number" id="meanAnswer" step="0.01" placeholder="Your answer (to 2 decimal places)">
+    
+    <label for="stdDevAnswer">Sample Standard Deviation:</label>
+    <input type="number" id="stdDevAnswer" step="0.01" placeholder="Your answer (to 2 decimal places)">
+    
+    <label for="zScoreAnswer">Z-Score for raw score:</label>
+    <input type="number" id="zScoreAnswer" step="0.01" placeholder="Your answer (to 2 decimal places)">
+    
+    <button onclick="checkAnswers()">Submit Answers</button>
+    <p id="result"></p>
+    <button onclick="generateQuestion()">Generate New Question</button>
+</body>
+</html>

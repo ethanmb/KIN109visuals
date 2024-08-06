@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mean Practice Question</title>
+    <title>Calculate Greater/Less than a Z-Score</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.1/jstat.min.js"></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -37,19 +38,25 @@
         let correctAnswer;
 
         function generateQuestion() {
-            // Generate five random numbers between 0 and 20
-            let numbers = [];
-            for (let i = 0; i < 5; i++) {
-                numbers.push(Math.floor(Math.random() * 21));
+            // Generate a random z-score between -3 and 3
+            let z = (Math.random() * 6 - 3).toFixed(2);
+            
+            // Randomly decide if the question is for greater than or less than
+            let isGreaterThan = Math.random() < 0.5;
+            
+            // Calculate the area using jStat
+            let area;
+            if (isGreaterThan) {
+                area = ((1 - jStat.normal.cdf(parseFloat(z), 0, 1)) * 100).toFixed(2);
+                correctAnswer = Math.abs(area); // Ensure positive value
+                document.getElementById("question").innerText = 
+                    `Calculate the area greater than z-score ${z} under the standard normal distribution (expressed as a percentage).`;
+            } else {
+                area = (jStat.normal.cdf(parseFloat(z), 0, 1) * 100).toFixed(2);
+                correctAnswer = Math.abs(area); // Ensure positive value
+                document.getElementById("question").innerText = 
+                    `Calculate the area less than z-score ${z} under the standard normal distribution (expressed as a percentage).`;
             }
-
-            // Calculate the mean
-            let sum = numbers.reduce((a, b) => a + b, 0);
-            correctAnswer = (sum / numbers.length).toFixed(2);
-
-            // Display the question
-            document.getElementById("question").innerText = 
-                "Calculate the mean of the following numbers (report your answer to 2 decimal places): " + numbers.join(", ");
             
             // Clear previous answer and result
             document.getElementById("studentAnswer").value = '';
@@ -57,10 +64,10 @@
         }
 
         function checkAnswer() {
-            let studentAnswer = document.getElementById("studentAnswer").value;
+            let studentAnswer = parseFloat(document.getElementById("studentAnswer").value).toFixed(2);
             let result = document.getElementById("result");
             
-            if (studentAnswer === correctAnswer) {
+            if (parseFloat(studentAnswer) === parseFloat(correctAnswer)) {
                 result.innerText = "Correct!";
                 result.style.color = "green";
             } else {
@@ -71,8 +78,9 @@
     </script>
 </head>
 <body onload="generateQuestion()">
+    <h1>Statistics Practice Question</h1>
     <p id="question"></p>
-    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer">
+    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer (to 2 decimal places)">
     <button onclick="checkAnswer()">Submit Answer</button>
     <p id="result"></p>
     <button onclick="generateQuestion()">Generate New Question</button>

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mean Practice Question</title>
+    <title>Calculate Area Between Two z-Scores</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.1/jstat.min.js"></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -37,19 +38,23 @@
         let correctAnswer;
 
         function generateQuestion() {
-            // Generate five random numbers between 0 and 20
-            let numbers = [];
-            for (let i = 0; i < 5; i++) {
-                numbers.push(Math.floor(Math.random() * 21));
+            // Generate two random z-scores between -3 and 3
+            let z1 = (Math.random() * 6 - 3).toFixed(2);
+            let z2 = (Math.random() * 6 - 3).toFixed(2);
+            
+            // Ensure z1 is less than z2
+            if (z1 > z2) {
+                [z1, z2] = [z2, z1]; // Swap if z1 is greater than z2
             }
 
-            // Calculate the mean
-            let sum = numbers.reduce((a, b) => a + b, 0);
-            correctAnswer = (sum / numbers.length).toFixed(2);
+            // Calculate the area between z1 and z2 using jStat
+            let area1 = jStat.normal.cdf(parseFloat(z2), 0, 1);
+            let area2 = jStat.normal.cdf(parseFloat(z1), 0, 1);
+            correctAnswer = ((area1 - area2) * 100).toFixed(2); // Convert to percentage
 
             // Display the question
             document.getElementById("question").innerText = 
-                "Calculate the mean of the following numbers (report your answer to 2 decimal places): " + numbers.join(", ");
+                `Calculate the area between z-scores ${z1} and ${z2} under the standard normal distribution (expressed as a percentage).`;
             
             // Clear previous answer and result
             document.getElementById("studentAnswer").value = '';
@@ -57,10 +62,10 @@
         }
 
         function checkAnswer() {
-            let studentAnswer = document.getElementById("studentAnswer").value;
+            let studentAnswer = parseFloat(document.getElementById("studentAnswer").value).toFixed(2);
             let result = document.getElementById("result");
             
-            if (studentAnswer === correctAnswer) {
+            if (parseFloat(studentAnswer) === parseFloat(correctAnswer)) {
                 result.innerText = "Correct!";
                 result.style.color = "green";
             } else {
@@ -71,8 +76,9 @@
     </script>
 </head>
 <body onload="generateQuestion()">
+    <h1>Statistics Practice Question</h1>
     <p id="question"></p>
-    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer">
+    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer (to 2 decimal places)">
     <button onclick="checkAnswer()">Submit Answer</button>
     <p id="result"></p>
     <button onclick="generateQuestion()">Generate New Question</button>
