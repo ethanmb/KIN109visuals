@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Normal Distribution</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+    }
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      width: 120px;
+      height: 60px;
+      padding: 2px;
+      font: 22px 'Helvetica Neue', sans-serif;
+      background: #507A55;
+      border: 1px;
+      border-radius: 8px;
+      pointer-events: none;
+    }    
+    .area {
+      opacity: 0.6;
+      fill: #73DD9B; /* Emerald */
+    }
+    .line {
+      fill: none;
+      stroke: #324B35; /* Cal Poly Green */
+      stroke-width: 2;
+    }
+    .dotted-line {
+      stroke: #04A17C; /* Jungle Green */
+      stroke-width: 2;
+    }
+    .critical-line {
+      stroke: #507A55; 
+      stroke-width: 2;
+      stroke-dasharray: 4 2;
+    }
+    input[type="radio"] {
+      accent-color: #324B35; /* Cal Poly Green */
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 300px; /* Set a fixed width */
+      margin: 10.8px 0;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 8px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: #8CE097; /* Light Green */
+      border-radius: 1.3px;
+      border: 0.2px solid #010101;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 15px;
+      width: 15px;
+      border-radius: 50%;
+      background: #04A17C; /* Jungle Green */
+      cursor: pointer;
+      margin-top: -4px; /* Adjust to fit the track height */
+    }
+    
+    input[type="range"]:focus::-webkit-slider-runnable-track {
+      background: #8CE097; /* Light Green */
+    }
+    
+    input[type="range"]::-moz-range-track {
+      width: 100%;
+      height: 8px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: #8CE097; /* Light Green */
+      border-radius: 1.3px;
+      border: 0.2px solid #010101;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      height: 15px;
+      width: 15px;
+      border-radius: 50%;
+      background: #04A17C; /* Jungle Green */
+      cursor: pointer;
+    }
+    
+    input[type="range"]::-ms-track {
+      width: 100%;
+      height: 8px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: transparent; 
+      border-color: transparent;
+      color: transparent;
+    }
+    
+    input[type="range"]::-ms-fill-lower {
+      background: #8CE097; /* Light Green */
+      border: 0.2px solid #010101;
+      border-radius: 2.6px;
+    }
+    
+    input[type="range"]::-ms-fill-upper {
+      background: #8CE097; /* Light Green */
+      border: 0.2px solid #010101;
+      border-radius: 2.6px;
+    }
+    
+    input[type="range"]::-ms-thumb {
+      height: 15px;
+      width: 15px;
+      border-radius: 50%;
+      background: #04A17C; /* Jungle Green */
+      cursor: pointer;
+    }
+    
+    input[type="range"]:focus::-ms-fill-lower {
+      background: #8CE097; /* Light Green */
+    }
+    
+    input[type="range"]:focus::-ms-fill-upper {
+      background: #8CE097; /* Light Green */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="alpha">Alpha: </label>
+    <input type="range" id="alpha" name="alpha" min="0.01" max="0.10" step="0.005" value="0.05">
+    <span id="alphaValue">0.05</span>
+    <br>
+    <label><input type="radio" name="tail" value="two" checked> Two-Tailed</label>
+    <label><input type="radio" name="tail" value="left"> One-Tailed (Left)</label>
+    <label><input type="radio" name="tail" value="right"> One-Tailed (Right)</label>
+  </div>
+  <svg width="800" height="400"></svg>
+  <script>
+    const svg = d3.select("svg");
+    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const width = svg.attr("width") - margin.left - margin.right;
+    const height = svg.attr("height") - margin.top - margin.bottom;
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear().range([0, width]).domain([-4, 4]);
+    const y = d3.scaleLinear().range([height, 0]).domain([0, 0.5]);
+
+    const line = d3.line()
+      .x(d => x(d.x))
+      .y(d => y(d.y));
+
+    const area = d3.area()
+      .x(d => x(d.x))
+      .y0(height)
+      .y1(d => y(d.y));
+
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+    const normalDistribution = (z) => {
+      return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * z * z);
+    };
+
+    const cumulativeNormalDistribution = (z) => {
+      return 0.5 * (1 + erf(z / Math.sqrt(2)));
+    };
+
+    const erf = (x) => {
+      const sign = x >= 0 ? 1 : -1;
+      x = Math.abs(x);
+      const a1 = 0.254829592;
+      const a2 = -0.284496736;
+      const a3 = 1.421413741;
+      const a4 = -1.453152027;
+      const a5 = 1.061405429;
+      const p = 0.3275911;
+      const t = 1.0 / (1.0 + p * x);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    };
+// Function to create a horizontal bracket path
+function createHorizontalBracket(x1, y, x2, height) {
+  const pathData = [
+    `M${x1},${y - height / 2}`, // Move to the top left point
+    `L${x1},${y + height / 2}`, // Vertical line down
+    `M${x1},${y}`, // Move to the middle left point
+    `L${x2},${y}`, // Horizontal line to the middle right point
+    `M${x2},${y - height / 2}`, // Move to the top right point
+    `L${x2},${y + height / 2}` // Vertical line down
+  ].join(" ");
+
+  return pathData;
+}
+
+const updateDistribution = () => {
+  const alpha = +d3.select("#alpha").property("value");
+  const tail = d3.select('input[name="tail"]:checked').node().value;
+
+  const data = d3.range(-4, 4, 0.01).map(z => ({
+    x: z,
+    y: normalDistribution(z)
+  }));
+
+  g.selectAll("*").remove();
+
+  g.append("path")
+    .datum(data)
+    .attr("class", "line")
+    .attr("d", line);
+
+  g.append("g")
+    .attr("class", "axis axis--x")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x));
+
+  let zCritical, zCriticalLeft;
+  if (tail === "two") {
+    zCritical = jStat.normal.inv(1 - alpha / 2, 0, 1);
+    zCriticalLeft = -zCritical;
+  } else if (tail === "left") {
+    zCriticalLeft = jStat.normal.inv(alpha, 0, 1);
+    zCritical = 4;
+  } else {
+    zCritical = jStat.normal.inv(1 - alpha, 0, 1);
+    zCriticalLeft = -4;
+  }
+
+  // Adjusted y position for brackets and text labels
+  const bracketYPosition = height / 6;
+  const textYPosition = bracketYPosition - 15;
+
+  if (tail === "two") {
+    g.append("line")
+      .attr("class", "critical-line")
+      .attr("x1", x(zCriticalLeft))
+      .attr("x2", x(zCriticalLeft))
+      .attr("y1", 0)
+      .attr("y2", height);
+    g.append("line")
+      .attr("class", "critical-line")
+      .attr("x1", x(zCritical))
+      .attr("x2", x(zCritical))
+      .attr("y1", 0)
+      .attr("y2", height);
+
+    g.append("path")
+      .datum(data.filter(d => d.x <= zCriticalLeft))
+      .attr("class", "area")
+      .attr("d", area)
+      .attr("fill", "#8CE097")
+      .attr("opacity", 0.6);
+    g.append("path")
+      .datum(data.filter(d => d.x >= zCritical))
+      .attr("class", "area")
+      .attr("d", area)
+      .attr("fill", "#8CE097")
+      .attr("opacity", 0.6);
+
+    // Add text labels for two-tailed test
+    const leftText = g.append("text")
+      .attr("x", x(zCriticalLeft) - 10)  // Adjust x position
+      .attr("y", height / 2)  // Centered vertically
+      .attr("text-anchor", "end")
+      .attr("dominant-baseline", "middle")
+      .text("Z");
+    leftText.append("tspan")
+      .attr("baseline-shift", "sub")
+      .style("font-size", "0.65em")  // Smaller font size
+      .text("CRIT");
+
+    const rightText = g.append("text")
+      .attr("x", x(zCritical) + 10)  // Adjust x position
+      .attr("y", height / 2)  // Centered vertically
+      .attr("text-anchor", "start")
+      .attr("dominant-baseline", "middle")
+      .text("Z");
+    rightText.append("tspan")
+      .attr("baseline-shift", "sub")
+      .style("font-size", "0.65em")  // Smaller font size
+      .text("CRIT");
+
+    // Add horizontal brackets for regions
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(-4), bracketYPosition, x(zCriticalLeft), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(zCriticalLeft), bracketYPosition, x(zCritical), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(zCritical), bracketYPosition, x(4), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    // Add text labels for regions
+    g.append("text")
+      .attr("x", (x(zCriticalLeft) + x(zCritical)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Non-Rejection");
+
+    g.append("text")
+      .attr("x", (x(-4) + x(zCriticalLeft)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Rejection");
+
+    g.append("text")
+      .attr("x", (x(zCritical) + x(4)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Rejection");
+
+  } else if (tail === "left") {
+    g.append("line")
+      .attr("class", "critical-line")
+      .attr("x1", x(zCriticalLeft))
+      .attr("x2", x(zCriticalLeft))
+      .attr("y1", 0)
+      .attr("y2", height);
+
+    g.append("path")
+      .datum(data.filter(d => d.x <= zCriticalLeft))
+      .attr("class", "area")
+      .attr("d", area)
+      .attr("fill", "#8CE097")
+      .attr("opacity", 0.6);
+
+    // Add text label for left-tailed test
+    const leftText = g.append("text")
+      .attr("x", x(zCriticalLeft) - 10)  // Adjust x position
+      .attr("y", height / 2)  // Centered vertically
+      .attr("text-anchor", "end")
+      .attr("dominant-baseline", "middle")
+      .text("p");
+    leftText.append("tspan")
+      .attr("baseline-shift", "sub")
+      .style("font-size", "0.65em")  // Smaller font size
+      .text("CRIT");
+
+    // Add horizontal bracket for rejection region
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(-4), bracketYPosition, x(zCriticalLeft), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    // Add text label for rejection region
+    g.append("text")
+      .attr("x", (x(-4) + x(zCriticalLeft)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Rejection");
+
+    // Add horizontal bracket for non-rejection region
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(zCriticalLeft), bracketYPosition, x(4), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    // Add text label for non-rejection region
+    g.append("text")
+      .attr("x", (x(zCriticalLeft) + x(4)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Non-Rejection");
+
+  } else {
+    g.append("line")
+      .attr("class", "critical-line")
+      .attr("x1", x(zCritical))
+      .attr("x2", x(zCritical))
+      .attr("y1", 0)
+      .attr("y2", height);
+
+    g.append("path")
+      .datum(data.filter(d => d.x >= zCritical))
+      .attr("class", "area")
+      .attr("d", area)
+      .attr("fill", "#8CE097")
+      .attr("opacity", 0.6);
+
+    // Add text label for right-tailed test
+    const rightText = g.append("text")
+      .attr("x", x(zCritical) + 10)  // Adjust x position
+      .attr("y", height / 2)  // Centered vertically
+      .attr("text-anchor", "start")
+      .attr("dominant-baseline", "middle")
+      .text("p");
+    rightText.append("tspan")
+      .attr("baseline-shift", "sub")
+      .style("font-size", "0.65em")  // Smaller font size
+      .text("CRIT");
+
+    // Add horizontal bracket for rejection region
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(zCritical), bracketYPosition, x(4), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    // Add text label for rejection region
+    g.append("text")
+      .attr("x", (x(zCritical) + x(4)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Rejection");
+
+    // Add horizontal bracket for non-rejection region
+    g.append("path")
+      .attr("d", createHorizontalBracket(x(-4), bracketYPosition, x(zCritical), 10))
+      .attr("stroke", "black")
+      .attr("fill", "none");
+
+    // Add text label for non-rejection region
+    g.append("text")
+      .attr("x", (x(-4) + x(zCritical)) / 2)
+      .attr("y", textYPosition)
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .text("Region of Non-Rejection");
+  }
+
+  const verticalLine = g.append("line")
+    .attr("class", "dotted-line")
+    .attr("y1", 0)
+    .attr("y2", height)
+    .attr("display", "none");
+
+  svg.on("mousemove", function(event) {
+    const [mouseX] = d3.pointer(event, this);
+    const mouseZ = x.invert(mouseX - margin.left);
+    let pValue;
+
+    if (tail === "two") {
+      pValue = (1 - cumulativeNormalDistribution(Math.abs(mouseZ)));
+    } else if (tail === "left") {
+      pValue = cumulativeNormalDistribution(mouseZ);
+    } else {
+      pValue = 1 - cumulativeNormalDistribution(mouseZ);
+    }
+
+    verticalLine.attr("x1", mouseX - margin.left)
+      .attr("x2", mouseX - margin.left)
+      .attr("display", "inline");
+
+    tooltip.transition().duration(200).style("opacity", 0.9);
+    tooltip.html(`Zobs: ${mouseZ.toFixed(2)}<br>p: ${pValue.toFixed(4)}`)
+      .style("left", `${event.pageX + 20}px`)
+      .style("top", `${event.pageY - 28}px`);
+  });
+
+  svg.on("mouseleave", () => {
+    tooltip.transition().duration(500).style("opacity", 0);
+    verticalLine.attr("display", "none");
+  });
+};
+
+updateDistribution();
+
+d3.select("#alpha").on("input", function() {
+  d3.select("#alphaValue").text(this.value);
+  updateDistribution();
+});
+
+d3.selectAll('input[name="tail"]').on("change", updateDistribution);
+
+
+  </script>
+</body>
+</html>
