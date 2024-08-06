@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Statistics Question</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        p, input, button {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+    </style>
+    <script>
+        let correctAnswer;
+
+        function generateQuestion() {
+            // Generate five random numbers between 0 and 20
+            let numbers = [];
+            for (let i = 0; i < 5; i++) {
+                numbers.push(Math.floor(Math.random() * 21));
+            }
+
+            // Calculate the mean
+            let sum = numbers.reduce((a, b) => a + b, 0);
+            correctAnswer = (sum / numbers.length).toFixed(2);
+
+            // Display the question
+            document.getElementById("question").innerText = 
+                "Calculate the mean of the following numbers (report your answer to 2 decimal places): " + numbers.join(", ");
+            
+            // Clear previous answer and result
+            document.getElementById("studentAnswer").value = '';
+            document.getElementById("result").innerText = '';
+        }
+
+        function checkAnswer() {
+            let studentAnswer = document.getElementById("studentAnswer").value;
+            let result = document.getElementById("result");
+            
+            if (studentAnswer === correctAnswer) {
+                result.innerText = "Correct!";
+                result.style.color = "green";
+            } else {
+                result.innerText = `Incorrect. The correct answer is ${correctAnswer}.`;
+                result.style.color = "red";
+            }
+        }
+    </script>
+</head>
+<body onload="generateQuestion()">
+    <p id="question"></p>
+    <input type="number" id="studentAnswer" step="0.01" placeholder="Your answer">
+    <button onclick="checkAnswer()">Submit Answer</button>
+    <p id="result"></p>
+    <button onclick="generateQuestion()">Generate New Question</button>
+</body>
+</html>
