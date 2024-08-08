@@ -30,7 +30,9 @@
         #degreesOfFreedomSlider {
             width: 800px; /* Same width as the chart */
         }
-        
+        .df-display {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -38,7 +40,9 @@
         <div id="chart"></div>
         <div class="slider-container">
             <input type="range" min="1" max="100" value="1" id="degreesOfFreedomSlider">
-            <span id="degreesOfFreedomValue">1</span>
+        </div>
+        <div class="df-display">
+            <span>Degrees of Freedom: </span><span id="degreesOfFreedomValue">1</span>
         </div>
     </div>
     <script src="script.js"></script>

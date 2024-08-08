@@ -49,6 +49,8 @@ function normalDist(x) {
 }
 
 let currentZScore = -1.644; // Initialize with -1.644
+let currentDf = 1; // Current degrees of freedom
+let intervalId; // Store the interval ID
 
 function updateChart(df) {
     const tData = d3.range(-5, 5.1, 0.1).map(x => ({ x: x, y: tDist(x, df) }));
@@ -59,12 +61,13 @@ function updateChart(df) {
 
     tPath.enter().append("path")
         .attr("class", "t-line")
+        .style("stroke", "blue")
+        .style("stroke-width", 2) // Thicker t-distribution line
+        .style("fill", "none")
         .merge(tPath)
         .transition()
-        .duration(1000)
-        .attr("d", tLine)
-        .style("stroke", "blue")
-        .style("fill", "none");
+        .duration(500) // Duration for smooth transition
+        .attr("d", tLine);
 
     tPath.exit().remove();
 
@@ -73,13 +76,12 @@ function updateChart(df) {
 
     normalPath.enter().append("path")
         .attr("class", "normal-line")
-        .merge(normalPath)
-        .transition()
-        .duration(1000)
-        .attr("d", normalLine)
         .style("stroke", "black")
         .style("stroke-dasharray", ("3, 3"))
-        .style("fill", "none");
+        .style("stroke-width", 2) // Thicker normal distribution line
+        .style("fill", "none")
+        .merge(normalPath)
+        .attr("d", normalLine);
 
     normalPath.exit().remove();
 
@@ -189,13 +191,28 @@ const slider = d3.select("#degreesOfFreedomSlider");
 const sliderValue = d3.select("#degreesOfFreedomValue");
 
 slider.on("input", function() {
-    const df = +this.value;
-    sliderValue.text(df);
+    const targetDf = +this.value;
+    sliderValue.text(targetDf);
 });
 
 slider.on("change", function() {
-    const df = +this.value;
-    updateChart(df);
+    const targetDf = +this.value;
+    const totalTransitionTime = 50; // Total transition time in milliseconds
+    const steps = Math.abs(targetDf - currentDf);
+    const intervalDuration = steps > 0 ? totalTransitionTime / steps : totalTransitionTime;
+
+    if (intervalId) clearInterval(intervalId); // Clear any existing interval
+
+    const step = targetDf > currentDf ? 1 : -1;
+    intervalId = setInterval(() => {
+        if (currentDf !== targetDf) {
+            currentDf += step;
+            updateChart(currentDf);
+            sliderValue.text(currentDf); // Update displayed degrees of freedom
+        } else {
+            clearInterval(intervalId);
+        }
+    }, intervalDuration);
 });
 
-updateChart(1);
+updateChart(currentDf);
