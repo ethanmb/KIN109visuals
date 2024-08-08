@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T-Distribution Visual</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .slider-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #degreesOfFreedomSlider {
+            width: 800px; /* Same width as the chart */
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <div id="chart"></div>
+        <div class="slider-container">
+            <input type="range" min="1" max="100" value="1" id="degreesOfFreedomSlider">
+            <span id="degreesOfFreedomValue">1</span>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
