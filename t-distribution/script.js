@@ -21,16 +21,11 @@ const x = d3.scaleLinear().domain([-5, 5]).range([0, width]);
 const y = d3.scaleLinear().domain([0, 0.4]).range([height, 0]);
 
 const xAxis = d3.axisBottom(x);
-const yAxis = d3.axisLeft(y);
 
 svg.append("g")
     .attr("class", "x axis")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
-
-svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
 
 const tLine = d3.line()
     .x(d => x(d.x))
@@ -46,6 +41,23 @@ function tDist(x, df) {
 
 function normalDist(x) {
     return jStat.normal.pdf(x, 0, 1);
+}
+
+function calculateProbabilities(zScore, df) {
+    const tProb = jStat.studentt.cdf(zScore, df);
+    const normalProb = jStat.normal.cdf(zScore, 0, 1);
+    return { tProb, normalProb };
+}
+
+function updateProbabilityDisplay(zScore, df) {
+    const { tProb, normalProb } = calculateProbabilities(zScore, df);
+
+    d3.selectAll("#currentZScoreText").text(zScore.toFixed(3));
+    d3.select("#tDistProb").text(tProb.toFixed(3));
+    d3.select("#normalDistProb").text(normalProb.toFixed(3));
+
+    d3.select("#tDistBar").style("width", `${tProb * 100}%`);
+    d3.select("#normalDistBar").style("width", `${normalProb * 100}%`);
 }
 
 let currentZScore = -1.644; // Initialize with -1.644
@@ -155,6 +167,7 @@ function drawLineAndFill(zScore, df) {
         currentZScore = newZ; // Update the current z-score
         line.attr("x1", newX).attr("x2", newX);
         drawAreaFill(newZ, df);
+        updateProbabilityDisplay(newZ, df); // Update probabilities
     }
 
     function drawAreaFill(newZ, df) {
@@ -189,14 +202,22 @@ function drawLineAndFill(zScore, df) {
 
 const slider = d3.select("#degreesOfFreedomSlider");
 const sliderValue = d3.select("#degreesOfFreedomValue");
+const tooltip = d3.select("#sliderTooltip");
 
 slider.on("input", function() {
-    const targetDf = +this.value;
-    sliderValue.text(targetDf);
+    const dummyDf = +this.value;
+    const sliderPosition = this.valueAsNumber / this.max * this.clientWidth;
+
+    // Update tooltip position and value
+    tooltip.style("visibility", "visible")
+        .style("left", `${sliderPosition}px`)
+        .text(dummyDf);
 });
 
 slider.on("change", function() {
     const targetDf = +this.value;
+    tooltip.style("visibility", "hidden"); // Hide the tooltip after release
+
     const totalTransitionTime = 50; // Total transition time in milliseconds
     const steps = Math.abs(targetDf - currentDf);
     const intervalDuration = steps > 0 ? totalTransitionTime / steps : totalTransitionTime;
@@ -209,6 +230,7 @@ slider.on("change", function() {
             currentDf += step;
             updateChart(currentDf);
             sliderValue.text(currentDf); // Update displayed degrees of freedom
+            updateProbabilityDisplay(currentZScore, currentDf); // Update probabilities
         } else {
             clearInterval(intervalId);
         }
@@ -216,3 +238,4 @@ slider.on("change", function() {
 });
 
 updateChart(currentDf);
+updateProbabilityDisplay(currentZScore, currentDf); // Initialize probabilities

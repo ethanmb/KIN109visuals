@@ -26,6 +26,7 @@
             display: flex;
             justify-content: center;
             margin-top: 20px;
+            position: relative;
         }
         #degreesOfFreedomSlider {
             width: 800px; /* Same width as the chart */
@@ -33,16 +34,74 @@
         .df-display {
             margin-top: 20px;
         }
+        .slider-tooltip {
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 14px;
+            visibility: hidden;
+        }
+        .probability-display {
+            margin-top: 20px;
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .probability-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .probability-label {
+            width: 150px; /* Fixed width for label text */
+            text-align: right;
+            padding-right: 10px;
+        }
+        .probability-bar-container {
+            width: 300px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 5px;
+            position: relative;
+        }
+        .probability-bar {
+            height: 100%;
+            background-color: #333;
+            border-radius: 5px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
     </style>
 </head>
 <body>
     <div class="chart-container">
         <div id="chart"></div>
         <div class="slider-container">
-            <input type="range" min="1" max="100" value="1" id="degreesOfFreedomSlider">
+            <input type="range" min="1" max="30" value="1" id="degreesOfFreedomSlider">
+            <div id="sliderTooltip" class="slider-tooltip"></div>
         </div>
         <div class="df-display">
             <span>Degrees of Freedom: </span><span id="degreesOfFreedomValue">1</span>
+        </div>
+        <div class="probability-display">
+            <div class="probability-row">
+                <div class="probability-label">P(X &lt; <span id="currentZScoreText">-1.644</span>) t-dist:</div>
+                <div class="probability-bar-container">
+                    <div id="tDistBar" class="probability-bar"></div>
+                </div>
+                <span id="tDistProb">0.174</span>
+            </div>
+            <div class="probability-row">
+                <div class="probability-label">P(X &lt; <span id="currentZScoreText">-1.644</span>) Normal:</div>
+                <div class="probability-bar-container">
+                    <div id="normalDistBar" class="probability-bar"></div>
+                </div>
+                <span id="normalDistProb">0.05</span>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
